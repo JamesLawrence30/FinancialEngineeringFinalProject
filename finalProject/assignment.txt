@@ -11,6 +11,8 @@ Our list of stocks to study:
 CAT, KO, XOM, INTC, JNJ, PG, DIS, PFE, AXP, GS, V, VZ, WMT, MCD, BA,
 CSCO, NKE, JPM, MRK, CVX (20), UTX, AAPL, HD, IBM, MSFT, TRV, UNH
 
+https://money.cnn.com/data/dow30/
+
 
 -------------------------------------------------------------------------------------
 
