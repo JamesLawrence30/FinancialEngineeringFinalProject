@@ -2,15 +2,46 @@ Final Project James Lawrence and Brittany DiFede
 
 *Our Project* for 20 stocks:
 
+------------------------------------------------------------------------------------
+
+Drawing from DJI "DOW 30"..
+Our list of stocks to study:
+(pick best correlated 20 at the end)
+
+CAT, KO, XOM, INTC, JNJ, PG, DIS, PFE, AXP, GS, V, VZ, WMT, MCD, BA,
+CSCO, NKE, JPM, MRK, CVX (20), UTX, AAPL, HD, IBM, MSFT, TRV, UNH
+
+
+-------------------------------------------------------------------------------------
+
 *1* Analyze rate of change of MACD to produce buy/sell signals
 --maybe incorporate RSI analysis
+
+-> using the csv data from API convert to timeseries
+identify change in increasing to decreasing and vice versa
+send the timestamp and the buy/sell signal to database
+
+-------------------------------------------------------------------------------------
 
 *2* Store buy/sell signals somewhere, backtest strategy after all signals are produced
 --backtest strategy for each stock individually first
 
+-> pull the price data and compare price,time to signal,time (from above) to find returns 
+do this for all 20 stocks
+
+
+---------------------------------------------------------------------------------------
+
 *3* Identify correlation in the performance of the 20 stocks
 --Use this to prove / disprove the strategy
+
+-> .correl() with pandas .var() simple way to compare returns of the 20 stocks
+..maybe a dataframe...
+
+----------------------------------------------------------------------------------------
 
 
 *Extra*:
 Beta --risk analysis
+
+----------------------------------------------------------------------------------------
