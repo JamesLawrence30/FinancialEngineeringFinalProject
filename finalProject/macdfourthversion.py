@@ -1,5 +1,5 @@
-import requests;
-import csv;
+import requests
+import csv
 
 
 alphaVantageKey = "0ZU6NM5CMUSMR7DO"
