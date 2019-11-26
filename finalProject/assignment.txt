@@ -1,6 +1,6 @@
 Final Project James Lawrence and Brittany DiFede
 
-*Assignment* for 20 stocks:
+*Our Project* for 20 stocks:
 
 *1* Analyze rate of change of MACD to produce buy/sell signals
 --maybe incorporate RSI analysis
