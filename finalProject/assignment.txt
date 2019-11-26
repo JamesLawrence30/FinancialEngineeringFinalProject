@@ -1,0 +1,16 @@
+Final Project James Lawrence and Brittany DiFede
+
+*Assignment* for 20 stocks:
+
+*1* Analyze rate of change of MACD to produce buy/sell signals
+--maybe incorporate RSI analysis
+
+*2* Store buy/sell signals somewhere, backtest strategy after all signals are produced
+--backtest strategy for each stock individually first
+
+*3* Identify correlation in the performance of the 20 stocks
+--Use this to prove / disprove the strategy
+
+
+*Extra*:
+Beta --risk analysis
