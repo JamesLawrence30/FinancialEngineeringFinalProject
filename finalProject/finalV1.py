@@ -1,41 +1,32 @@
-import requests
-import csv
+import pandas as pd
 
-
-alphaVantageKey = "0ZU6NM5CMUSMR7DO"
+#can only make 5 API calls per minute, and need to make 20, so had to download all the CSV files first
 
 def makeRequest(symbol):
-    #create api call string below. receive time series from api
-    #datatype=csv is key here to receiving the data in a format that is useful for python
-    csvURL = "https://www.alphavantage.co/query?function=MACD&symbol="+symbol+"&interval=1min&datatype=csv&series_type=open&apikey="+alphaVantageKey
-    
-    with requests.Session() as s:
-        tSeriesDownload = s.get(csvURL); #make request and receive csv file
-
-        decoded_content = tSeriesDownload.content.decode('utf-8'); #'decode' file to use as csv in python?
-        
-        tSeriesDecoded = csv.reader(decoded_content.splitlines(), delimiter=','); # turn csv into usable list in python?
-
-        tSeriesWithHeader = list(tSeriesDecoded); #full csv file is now usable in python
-
-        tSeries = tSeriesWithHeader[1:]; #remove first line off time series with name of each csv column
-
-    return tSeries;
+    #go to directory with all the csv files and pick the desired file
+    csvLocation = './csvData/technical_indicator_{}.csv'.format(symbol)
+    #turn the csv into a data frame with pandas
+    dataFrame = pd.DataFrame(pd.read_csv(csvLocation, low_memory=False))
+    cleanData = clean(dataFrame)
+    return cleanData
 
 
-def populateDB(timeSeries):
-    """
-    for row in timeSeries:
-        print(row)
-    """
-    for row in timeSeries:
-        if(float(row[3]) >= 0.0):
-            print("SELL: ", row[0], row[3]);
-        if(float(row[3]) < 0.0):
-            print("BUY: ", row[0], row[3]);
+def clean(rawDF):
+    #do backfill for missing data or 0's?
+    return rawDF #return the cleaned data eventually..
+
+
+def populateDB(df):
+    for index, row in df.iterrows():
+        #need index, row to access row values by name
+        if(float(row["MACD_Signal"]) >= 0.0):
+            print("SELL:", row["time"], row["MACD_Signal"]);
+        if(float(row["MACD_Signal"]) < 0.0):
+            print("BUY:", row["time"], row["MACD_Signal"]);
+
 
 def main():
-    timeSeries = makeRequest("CAT");  #structure api call by passing in a ticker symbol
+    timeSeries = makeRequest("MSFT");  #structure api call by passing in a ticker symbol
     populateDB(timeSeries);#populate database with all time series data
     """
     timeSeries = makeRequest("KO");
@@ -77,7 +68,6 @@ def main():
     timeSeries = makeRequest("CVX");
     populateDB(timeSeries);
     """
-
 
 #Tell python to call main function first
 if __name__ == "__main__":
