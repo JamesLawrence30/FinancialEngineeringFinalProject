@@ -16,7 +16,8 @@ def makeDF(allSymbols, ts_rng):
     #print(df)
     	
     for ticker in allSymbols:
-        csvLocation = './csvData/technical_indicator_{}.csv'.format(ticker) #go to directory with all the csv files and pick the desired file
+        #csvLocation = './csvData/technical_indicator_{}.csv'.format(ticker) #go to directory with all the csv files and pick the desired file
+        csvLocation = './testData/technical_indicator_{}.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
         importedDF = pd.DataFrame(pd.read_csv(csvLocation, low_memory=False)) #turn the csv into a data frame with pandas
         fullImportedData = compareVals(df, importedDF)
         #print(fullImportedData)
@@ -103,7 +104,9 @@ def populateDB(df):
 
 
 def main():
-    allTickers=["MSFT", "KO", "XOM", "INTC", "JNJ", "PG", "PFE", "DIS", "AXP", "GS", "V", "VZ", "WMT", "MCD", "BA", "CSCO", "NKE", "JPM", "MRK", "CVX"]
+    #allTickers=["MSFT", "KO", "XOM", "INTC", "JNJ", "PG", "PFE", "DIS", "AXP", "GS", "V", "VZ", "WMT", "MCD", "BA", "CSCO", "NKE", "JPM", "MRK", "CVX"]
+    #testing with only MSFT and KO for now..will add all MACD and price data for other stocks on Wednesday night
+    allTickers=["MSFT", "KO"]
     rng = makeTS();
     dataframe = makeDF(allTickers, rng);  #structure api call by passing in a ticker symbol
     dataframe.to_csv('./hasNullsExport.csv')
