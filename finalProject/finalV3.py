@@ -75,8 +75,16 @@ def insertRow(df, rowNum, time):
 
 
 def combineDFs(dfWeBuilt, dfImported, stock):
-    newCol="{}_MACD".format(stock)
-    dfWeBuilt[newCol]=dfImported["MACD_Hist"]
+    #add the MACD column
+    macdCol="{}_MACD".format(stock)
+    dfWeBuilt[macdCol]=dfImported["MACD_Hist"]
+	
+    #add the gradient of the MACD to a column
+    array=np.array(dfImported["MACD_Hist"], dtype=np.float)
+    rateOfChange=np.gradient(array)
+    derivCol="{}_DERIV".format(stock)
+    dfWeBuilt[derivCol]=rateOfChange
+
     return dfWeBuilt
 
 
@@ -98,9 +106,9 @@ def main():
     allTickers=["MSFT", "KO", "XOM", "INTC", "JNJ", "PG", "PFE", "DIS", "AXP", "GS", "V", "VZ", "WMT", "MCD", "BA", "CSCO", "NKE", "JPM", "MRK", "CVX"]
     rng = makeTS();
     dataframe = makeDF(allTickers, rng);  #structure api call by passing in a ticker symbol
-	#dataframe.to_csv('./hasNullsExport.csv')
-	cleanedDF = clean(dataframe)
-    #cleanedDF.to_csv('./cleanedExport.csv')
+    dataframe.to_csv('./hasNullsExport.csv')
+    cleanedDF = clean(dataframe)
+    cleanedDF.to_csv('./cleanedExport.csv')
     #populateDB(cleanedDF);#populate database with all time series data
 
 
