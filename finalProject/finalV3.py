@@ -82,7 +82,7 @@ def combineDFs(dfWeBuilt, dfImported, stock):
     #add the gradient of the MACD to a column
     array=np.array(dfImported["MACD_Hist"], dtype=np.float)
     rateOfChange=np.gradient(array)
-    derivCol="{}_DERIV".format(stock)
+    derivCol="{}_GRADIENT".format(stock)
     dfWeBuilt[derivCol]=rateOfChange
 
     return dfWeBuilt
