@@ -13,14 +13,18 @@ def makeDF(allSymbols, ts_rng):
 
     date_rng = ts_rng
     df = pd.DataFrame(date_rng, columns=["dateAndTime"])
-    #print(df)
+    print(df)
     	
     for ticker in allSymbols:
-        #csvLocation = './csvData/technical_indicator_{}.csv'.format(ticker) #go to directory with all the csv files and pick the desired file
-        csvLocation = './testData/technical_indicator_{}.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
-        importedDF = pd.DataFrame(pd.read_csv(csvLocation, low_memory=False)) #turn the csv into a data frame with pandas
-        fullImportedData = compareVals(df, importedDF)
-        #print(fullImportedData)
+        csvMACD = './testData/technical_indicator_{}.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
+        dfMACD = pd.DataFrame(pd.read_csv(csvMACD, low_memory=False)) #turn the csv into a data frame with pandas
+
+        #***may need to delete the csv rows with timestamps that don't line up with MACD times***
+        csvPRICE = './testData/intraday_1min_{}.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
+        dfPRICE = pd.DataFrame(pd.read_csv(csvPRICE, low_memory=False)) #turn the csv into a data frame with pandas	
+        fullImportedData = compareVals(df, dfMACD, dfPRICE)
+        #print(fullImportedData[0])
+        #print(fullImportedData[1])
         df = combineDFs(df, fullImportedData, ticker)
         #print(df)
     return df
@@ -28,8 +32,8 @@ def makeDF(allSymbols, ts_rng):
 
 def makeTS():
     finalrng=[] #initialize the list that will contain the correct dates and times
-    days = pd.bdate_range(start='11/20/2019 10:04', end='11/26/2019 16:00', freq='C', normalize=False, weekmask='Mon Tue Wed Thu Fri'); #create range with days, wrong times
-    rng = pd.bdate_range(start='11/20/2019 10:04', end='11/26/2019 16:00', freq='1T', normalize=False); #create our own range using 1 min intervals, but all days of the week
+    days = pd.bdate_range(start='11/22/2019 10:04', end='11/29/2019 13:01', freq='C', normalize=False, weekmask='Mon Tue Wed Thu Fri'); #create range with days, wrong times
+    rng = pd.bdate_range(start='11/22/2019 10:04', end='11/29/2019 13:01', freq='1T', normalize=False); #create our own range using 1 min intervals, but all days of the week
 
     #fill list with correct times and days for ts index
     startTime = dt.time(9,30,0);
@@ -49,18 +53,31 @@ def makeTS():
     return finalrng[::-1] #prevents inverted range return
 
 
-def compareVals(dfWeBuilt, dfImported):
-    dfImported = dfImported.drop(['MACD','MACD_Signal'], axis=1) #drop the columns we dont need
-    #print(dfImported)
+def compareVals(dfWeBuilt, dfMACD, dfPRICE):
+    dfMACD = dfMACD.drop(['MACD','MACD_Signal'], axis=1) #drop the columns we dont need
+    print(dfMACD)
+    dfPRICE = dfPRICE.drop(['high','low','close','volume'], axis=1) #drop the columns we dont need
+    print(dfPRICE)
     count=0
     for datetime in dfWeBuilt["dateAndTime"]:
-	    if  str(datetime) != str(dfImported["time"][count]):
-		    #print("Missing time:", dfImported["time"][count])
-		    dfImported=insertRow(dfImported, count, str(datetime)) #add the missing times into the dataframe
-	    count=count+1
-    
-    #print(dfImported)
-    return dfImported
+        if  str(datetime) != str(dfMACD["time"][count]):
+            print("Missing time:", dfMACD["time"][count])
+            dfMACD=insertRow(dfMACD, count, str(datetime)) #add the missing times into the dataframe
+        count=count+1
+    print("MACD done:")
+    print(dfMACD)
+
+    counter=0
+    for datetime in dfWeBuilt["dateAndTime"]:
+        if  str(datetime) != pd.to_datetime(str(dfPRICE["timestamp"][counter])).strftime("%Y-%m-%d %H:%M"):
+            print(str(datetime), pd.to_datetime(str(dfPRICE["timestamp"][counter])).strftime("%Y-%m-%d %H:%M"))
+            #print("Missing time:", dfPRICE["timestamp"][counter])
+            dfPRICE=insertRow(dfPRICE, counter, str(datetime)) #add the missing times into the dataframe
+        counter=counter+1
+    print("Price done:")
+    print(dfPRICE)
+
+    return dfMACD, dfPRICE
 
 	
 def insertRow(df, rowNum, time):
@@ -76,15 +93,23 @@ def insertRow(df, rowNum, time):
 
 
 def combineDFs(dfWeBuilt, dfImported, stock):
+    macdDataFrame = dfImported[0]
+    priceDataFrame = dfImported[1]
+	
     #add the MACD column
     macdCol="{}_MACD".format(stock)
-    dfWeBuilt[macdCol]=dfImported["MACD_Hist"]
+    dfWeBuilt[macdCol]=macdDataFrame["MACD_Hist"]
 	
     #add the gradient of the MACD to a column
-    array=np.array(dfImported["MACD_Hist"], dtype=np.float)
+    array=np.array(macdDataFrame["MACD_Hist"], dtype=np.float)
     rateOfChange=np.gradient(array)
     derivCol="{}_GRADIENT".format(stock)
     dfWeBuilt[derivCol]=rateOfChange
+
+    #add the price of the stock to a column
+    priceArray=np.array(priceDataFrame["open"], dtype=np.float) #using open to represent price at the start of the minute
+    priceCol="{}_PRICE".format(stock)
+    dfWeBuilt[priceCol]=priceArray
 
     return dfWeBuilt
 
