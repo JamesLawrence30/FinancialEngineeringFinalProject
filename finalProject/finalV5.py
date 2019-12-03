@@ -16,11 +16,11 @@ def makeDF(allSymbols, ts_rng):
     print(df)
     	
     for ticker in allSymbols:
-        csvMACD = './testData/technical_indicator_{}.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
+        csvMACD = './testData/2019_12_02_James2M/__AV01_{}_01.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
         dfMACD = pd.DataFrame(pd.read_csv(csvMACD, low_memory=False)) #turn the csv into a data frame with pandas
 
         #***may need to delete the csv rows with timestamps that don't line up with MACD times***
-        csvPRICE = './testData/intraday_1min_{}.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
+        csvPRICE = './testData/2019_12_02_James1/__AV01_{}_01.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
         dfPRICE = pd.DataFrame(pd.read_csv(csvPRICE, low_memory=False)) #turn the csv into a data frame with pandas	
         fullImportedData = compareVals(df, dfMACD, dfPRICE)
         #print(fullImportedData[0])
@@ -32,8 +32,8 @@ def makeDF(allSymbols, ts_rng):
 
 def makeTS():
     finalrng=[] #initialize the list that will contain the correct dates and times
-    days = pd.bdate_range(start='11/22/2019 10:04', end='11/29/2019 13:01', freq='C', normalize=False, weekmask='Mon Tue Wed Thu Fri'); #create range with days, wrong times
-    rng = pd.bdate_range(start='11/22/2019 10:04', end='11/29/2019 13:01', freq='1T', normalize=False); #create our own range using 1 min intervals, but all days of the week
+    days = pd.bdate_range(start='11/25/2019 9:31', end='12/2/2019 16:00', freq='C', normalize=False, weekmask='Mon Tue Wed Thu'); #create range with days, wrong times
+    rng = pd.bdate_range(start='11/25/2019 9:31', end='12/2/2019 16:00', freq='1T', normalize=False); #create our own range using 1 min intervals, but all days of the week
 
     #fill list with correct times and days for ts index
     startTime = dt.time(9,30,0);
@@ -120,6 +120,7 @@ def clean(rawDF):
 
 
 def populateDB(df):
+	#df["colname"] = toSendToDB
     for index, row in df.iterrows():
         #need index, row to access row values by name
         if(float(row["MACD_Signal"]) >= 0.0):
@@ -129,9 +130,9 @@ def populateDB(df):
 
 
 def main():
-    #allTickers=["MSFT", "KO", "XOM", "INTC", "JNJ", "PG", "PFE", "DIS", "AXP", "GS", "V", "VZ", "WMT", "MCD", "BA", "CSCO", "NKE", "JPM", "MRK", "CVX"]
+    allTickers=["MSFT", "KO", "XOM", "INTC", "JNJ", "PG", "PFE", "DIS", "AXP", "GS", "V", "VZ", "WMT", "MCD", "BA", "CSCO", "NKE", "JPM", "MRK", "CVX"]
     #testing with only MSFT and KO for now..will add all MACD and price data for other stocks on Wednesday night
-    allTickers=["MSFT", "KO"]
+    #allTickers=["MSFT", "KO"]
     rng = makeTS();
     dataframe = makeDF(allTickers, rng);  #structure api call by passing in a ticker symbol
     dataframe.to_csv('./hasNullsExport.csv')
