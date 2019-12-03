@@ -33,7 +33,7 @@ def makeDF(allSymbols, ts_rng):
 
 def makeTS():
     finalrng=[] #initialize the list that will contain the correct dates and times
-    days = pd.bdate_range(start='11/25/2019 9:31', end='12/2/2019 16:00', freq='C', normalize=False, weekmask='Mon Tue Wed Thu'); #create range with days, wrong times
+    days = pd.bdate_range(start='11/25/2019 9:31', end='12/2/2019 16:00', freq='C', normalize=False, weekmask='Mon Tue Wed Thu Fri'); #create range with days, wrong times
     rng = pd.bdate_range(start='11/25/2019 9:31', end='12/2/2019 16:00', freq='1T', normalize=False); #create our own range using 1 min intervals, but all days of the week
 
     #fill list with correct times and days for ts index
