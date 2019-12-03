@@ -1,5 +1,8 @@
 import requests, json, sqlite3, copy
 
+#keep transaction history for unique values so that have full history
+#show just past 3 days of data
+
 def get_stock_data(stock_symbols):
     iex_uri = 'https://api.iextrading.com/1.0/tops?symbols=' + ",".join(stock_symbols)
     # print("Retrieving from {}".format(iex_uri))
