@@ -1,6 +1,7 @@
 --CREATE TABLE Signals (
+--    Name CHAR,
 --    TimeofAction TIME,
---   BuyOrSell CHAR,
+--    BuyOrSell CHAR,
 --    Amount DECIMAL
 --);
 
