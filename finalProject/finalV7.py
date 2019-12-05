@@ -163,7 +163,11 @@ def combineDFs(dfWeBuilt, dfImported, stock):
 
 
 def clean(rawDF):
-    cleanedDF = rawDF.fillna(method='ffill') #don't fill na with 0 because many values should be 0 when macd crosses from (-) to (+)
+    #drop row with more than 50% of columns in that row having NaN for that row
+    reducedDF = rawDF.dropna(thresh=rawDF.shape[1]*0.5)
+    
+    #don't fill na with 0 because many values should ACTUALLY be 0 when macd crosses from (-) to (+)
+    cleanedDF = reducedDF.fillna(method='ffill')
     return cleanedDF
 
 
