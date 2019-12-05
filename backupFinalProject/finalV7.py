@@ -2,7 +2,6 @@ import pandas as pd
 from pandas import DataFrame, Series
 from datetime import datetime
 import datetime as dt
-import pandas as pd
 import numpy as np
 from numpy import nan
 import requests, json, sqlite3, copy
@@ -53,6 +52,7 @@ def makeTS():
             count = count+1
 
     return finalrng[::-1] #prevents inverted range return
+
 
 #issue is that MACD and price data arent the same range of datetimes..
 def compareVals(dfWeBuilt, dfMACD, dfPRICE, symbol):
@@ -141,6 +141,7 @@ def endcase(df, time):
     newDF.index = [*range(newDF.shape[0])] #need to reaassign the index
     return newDF
 
+
 def combineDFs(dfWeBuilt, dfImported, stock):
     macdDataFrame = dfImported[0]
     priceDataFrame = dfImported[1]
@@ -159,12 +160,45 @@ def combineDFs(dfWeBuilt, dfImported, stock):
     priceArray=np.array(priceDataFrame["open"], dtype=np.float) #using open to represent price at the start of the minute
     priceCol="{}_PRICE".format(stock)
     dfWeBuilt[priceCol]=priceArray
+	
+    #add the initial signal to a column
+    signalList=[]
+    allDerivatives = dfWeBuilt[derivCol]
+    for deriv in allDerivatives:
+    	if deriv > 0:
+    		signalList.append("B")
+    	elif deriv < 0:
+    		signalList.append("S")
+    	else:
+    		signalList.append("H")
+    signalCol="{}_SIGNAL".format(stock)
+    dfWeBuilt[signalCol]=signalList
 
+    #create the final trade signal and add to column
+    tradeList=[]
+    current_signal="H" #hold is default
+    allSignals = dfWeBuilt[signalCol]
+    for signal in allSignals:
+        if signal == "H":
+        	tradeList.append("H")
+        elif signal == current_signal:
+        	tradeList.append("H")
+        	current_signal=signal
+        else:# signal != current_signal:
+        	tradeList.append(signal)
+        	current_signal=signal
+    tradeCol="{}_TRADE".format(stock)
+    dfWeBuilt[tradeCol]=tradeList
+    
     return dfWeBuilt
 
 
 def clean(rawDF):
-    cleanedDF = rawDF.fillna(method='ffill') #don't fill na with 0 because many values should be 0 when macd crosses from (-) to (+)
+    #drop row with more than 50% of columns in that row having NaN for that row
+    reducedDF = rawDF.dropna(thresh=rawDF.shape[1]*0.5)
+    
+    #don't fill na with 0 because many values should ACTUALLY be 0 when macd crosses from (-) to (+)
+    cleanedDF = reducedDF.fillna(method='ffill')
     return cleanedDF
 
 

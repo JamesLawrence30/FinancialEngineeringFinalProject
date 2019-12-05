@@ -53,6 +53,7 @@ def makeTS():
 
     return finalrng[::-1] #prevents inverted range return
 
+
 #issue is that MACD and price data arent the same range of datetimes..
 def compareVals(dfWeBuilt, dfMACD, dfPRICE, symbol):
 	#DROP UNNECESSARY COLUMNS:
@@ -140,6 +141,7 @@ def endcase(df, time):
     newDF.index = [*range(newDF.shape[0])] #need to reaassign the index
     return newDF
 
+
 def combineDFs(dfWeBuilt, dfImported, stock):
     macdDataFrame = dfImported[0]
     priceDataFrame = dfImported[1]
@@ -158,7 +160,36 @@ def combineDFs(dfWeBuilt, dfImported, stock):
     priceArray=np.array(priceDataFrame["open"], dtype=np.float) #using open to represent price at the start of the minute
     priceCol="{}_PRICE".format(stock)
     dfWeBuilt[priceCol]=priceArray
+	
+    #add the initial signal to a column
+    signalList=[]
+    allDerivatives = dfWeBuilt[derivCol]
+    for deriv in allDerivatives:
+    	if deriv > 0:
+    		signalList.append("B")
+    	elif deriv < 0:
+    		signalList.append("S")
+    	else:
+    		signalList.append("H")
+    signalCol="{}_SIGNAL".format(stock)
+    dfWeBuilt[signalCol]=signalList
 
+    #create the final trade signal and add to column
+    tradeList=[]
+    current_signal="H" #hold is default
+    allSignals = dfWeBuilt[signalCol]
+    for signal in allSignals:
+        if signal == "H":
+        	tradeList.append("H")
+        elif signal == current_signal:
+        	tradeList.append("H")
+        	current_signal=signal
+        else:# signal != current_signal:
+        	tradeList.append(signal)
+        	current_signal=signal
+    tradeCol="{}_TRADE".format(stock)
+    dfWeBuilt[tradeCol]=tradeList
+    
     return dfWeBuilt
 
 
@@ -179,8 +210,6 @@ def populateDB(df):
             print("SELL:", row["time"], row["MACD_Signal"]);
         if(float(row["MACD_Signal"]) < 0.0):
             print("BUY:", row["time"], row["MACD_Signal"]);
-
-
 
 
 def main():
