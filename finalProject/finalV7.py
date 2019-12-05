@@ -145,22 +145,25 @@ def endcase(df, time):
 def combineDFs(dfWeBuilt, dfImported, stock):
     macdDataFrame = dfImported[0]
     priceDataFrame = dfImported[1]
-	
-    #add the MACD column
-    macdCol="{}_MACD".format(stock)
-    dfWeBuilt[macdCol]=macdDataFrame["MACD_Hist"]
-	
-    #add the gradient of the MACD to a column
-    array=np.array(macdDataFrame["MACD_Hist"], dtype=np.float)
-    rateOfChange=np.gradient(array)
-    derivCol="{}_GRADIENT".format(stock)
-    dfWeBuilt[derivCol]=rateOfChange
 
     #add the price of the stock to a column
     priceArray=np.array(priceDataFrame["open"], dtype=np.float) #using open to represent price at the start of the minute
     priceCol="{}_PRICE".format(stock)
     dfWeBuilt[priceCol]=priceArray
+
+    #add the MACD column
+    macdCol="{}_MACD".format(stock)
+    dfWeBuilt[macdCol]=macdDataFrame["MACD_Hist"]
+    
+    #put df in chronological order
+    dfWeBuilt = dfWeBuilt.iloc[::-1]
 	
+    #add the gradient of the chronological (reversed) MACD data to a column
+    array=np.array(macdDataFrame["MACD_Hist"][::-1], dtype=np.float)
+    rateOfChange=np.gradient(array, 1)
+    derivCol="{}_GRADIENT".format(stock)
+    dfWeBuilt[derivCol]=rateOfChange
+
     #add the initial signal to a column
     signalList=[]
     allDerivatives = dfWeBuilt[derivCol]
@@ -174,10 +177,11 @@ def combineDFs(dfWeBuilt, dfImported, stock):
     signalCol="{}_SIGNAL".format(stock)
     dfWeBuilt[signalCol]=signalList
 
-    #create the final trade signal and add to column
+    #create the final trading signal and add to column
+    #inverting signal column to make trade analysis realistic in analyzing data from oldest to newest
     tradeList=[]
     current_signal="H" #hold is default
-    allSignals = dfWeBuilt[signalCol]
+    allSignals = dfWeBuilt[signalCol]#[::-1]
     for signal in allSignals:
         if signal == "H":
         	tradeList.append("H")
@@ -189,16 +193,24 @@ def combineDFs(dfWeBuilt, dfImported, stock):
         	current_signal=signal
     tradeCol="{}_TRADE".format(stock)
     dfWeBuilt[tradeCol]=tradeList
-    
+
+    #put df back in newest to oldest order
+    dfWeBuilt = dfWeBuilt.iloc[::-1]
+
     return dfWeBuilt
 
 
 def clean(rawDF):
-    #drop row with more than 50% of columns in that row having NaN for that row
-    reducedDF = rawDF.dropna(thresh=rawDF.shape[1]*0.5)
+    #drop row with more than 30% of columns in that row having NaN for that row (many columns have a signal value in the row, so thresh must be low)
+    reducedDF = rawDF.dropna(thresh=rawDF.shape[1]*0.7)
+    reducedDF.index = [*range(reducedDF.shape[0])] #need to reaassign the index again
     
     #don't fill na with 0 because many values should ACTUALLY be 0 when macd crosses from (-) to (+)
     cleanedDF = reducedDF.fillna(method='ffill')
+
+    #if there were any problems with front filling, fill with 0
+    cleanedDF = reducedDF.fillna(0)
+
     return cleanedDF
 
 
@@ -214,8 +226,6 @@ def populateDB(df):
 
 def main():
     allTickers=["MSFT", "KO", "XOM", "INTC", "JNJ", "PG", "PFE", "DIS", "AXP", "GS", "V", "VZ", "WMT", "MCD", "BA", "CSCO", "NKE", "JPM", "MRK", "CVX"]
-    #testing with only MSFT and KO for now..will add all MACD and price data for other stocks on Wednesday night
-    #allTickers=["MSFT", "KO"]
     rng = makeTS();
     dataframe = makeDF(allTickers, rng);  #structure api call by passing in a ticker symbol
     dataframe.to_csv('./hasNullsExport.csv')
