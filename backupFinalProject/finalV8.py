@@ -178,10 +178,9 @@ def combineDFs(dfWeBuilt, dfImported, stock):
     dfWeBuilt[signalCol]=signalList
 
     #create the final trading signal and add to column
-    #inverting signal column to make trade analysis realistic in analyzing data from oldest to newest
     tradeList=[]
     current_signal="H" #hold is default
-    allSignals = dfWeBuilt[signalCol]#[::-1]
+    allSignals = dfWeBuilt[signalCol]
     for signal in allSignals:
         if signal == "H":
         	tradeList.append("H")
@@ -193,9 +192,76 @@ def combineDFs(dfWeBuilt, dfImported, stock):
         	current_signal=signal
     tradeCol="{}_TRADE".format(stock)
     dfWeBuilt[tradeCol]=tradeList
+    
+    #need to reaassign the index
+    dfWeBuilt.index = [*range(dfWeBuilt.shape[0])]
+    
+    #compute profits and percent returns from the trading signals
+    profitsTaken=[]
+    percentReturns=[]
+    currentTradePsn=0
+    previousTradePsn=0
+    previous_trade="H"
+    allTrades = dfWeBuilt[tradeCol]
+    
+    for trade in allTrades:
+        current_price=dfWeBuilt[priceCol][currentTradePsn]
+        previous_price=dfWeBuilt[priceCol][previousTradePsn]
+        
+        #haven't found first trade yet
+        if trade == "H" and previous_trade == "H":
+        	profitsTaken.append(0)
+        	percentReturns.append(0)
+        	currentTradePsn=currentTradePsn+1
+        	continue
+        
+        #found first trade, set as first previous trade
+        elif previous_trade == "H":
+        	if trade == "B":
+        		previous_trade = "B"
+        	else:# trade == "S":
+        		previous_trade = "S"
+        
+        	profitsTaken.append(0)
+        	percentReturns.append(0)
+        	previousTradePsn=currentTradePsn
+        	currentTradePsn=currentTradePsn+1
+        
+        elif trade == "S" and previous_trade == "B":
+        	long_position=(current_price-previous_price).round(2)
+        	profitsTaken.append(long_position) #Long trade
+        	long_returns=(((current_price-previous_price)/previous_price)*100).round(2)
+        	percentReturns.append(long_returns)
+        	previous_trade = "S"
+        	previousTradePsn=currentTradePsn
+        	currentTradePsn=currentTradePsn+1
+        
+        elif trade == "B" and previous_trade == "S":
+        	short_position=(previous_price-current_price).round(2)
+        	profitsTaken.append(short_position) #Short sell
+        	short_returns=(((previous_price-current_price)/previous_price)*100).round(2)
+        	percentReturns.append(short_returns)
+        	previous_trade = "B"
+        	previousTradePsn=currentTradePsn
+        	currentTradePsn=currentTradePsn+1
+        
+        else:# trade == "H"
+        	profitsTaken.append(0)
+        	percentReturns.append(0)
+        	currentTradePsn=currentTradePsn+1
+        	continue
+    		
+    profitCol="{}_PROFIT".format(stock)
+    dfWeBuilt[profitCol]=profitsTaken
 
+    percentCol="{}_%_RETURN".format(stock)
+    dfWeBuilt[percentCol]=percentReturns
+    
     #put df back in newest to oldest order
     dfWeBuilt = dfWeBuilt.iloc[::-1]
+
+    #need to reaassign the index
+    dfWeBuilt.index = [*range(dfWeBuilt.shape[0])]
 
     return dfWeBuilt
 
