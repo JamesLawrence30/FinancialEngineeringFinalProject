@@ -1,3 +1,4 @@
+import pandas as pd
 from pandas import DataFrame, Series
 from datetime import datetime
 import datetime as dt
@@ -5,7 +6,6 @@ import numpy as np
 from numpy import nan
 import requests, json, sqlite3, copy
 
-import pandas as pd
 
 #can only make 5 API calls per minute, and need to make 20, so had to download all the CSV files first
 
