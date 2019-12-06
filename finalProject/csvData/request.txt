@@ -1,3 +1,0 @@
-https://www.alphavantage.co/query?function=MACD&symbol=MSFT&interval=1min&datatype=csv&series_type=open&apikey=0ZU6NM5CMUSMR7DO
-
-https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=MSFT&interval=1min&outputsize=full&datatype=csv&apikey=0ZU6NM5CMUSMR7DO

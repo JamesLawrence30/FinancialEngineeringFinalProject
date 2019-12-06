@@ -8,33 +8,32 @@ import requests, json, sqlite3, copy
 
 
 #can only make 5 API calls per minute, and need to make 20, so had to download all the CSV files first
-
 def makeDF(allSymbols, ts_rng):
 
     date_rng = ts_rng
     df = pd.DataFrame(date_rng, columns=["dateAndTime"])
-    #print("range:", df)
     	
     for ticker in allSymbols:
-        csvMACD = './testData/2019_12_02_James2M/__AV01_{}_01.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
-        dfMACD = pd.DataFrame(pd.read_csv(csvMACD, low_memory=False)) #turn the csv into a data frame with pandas
+    	#only testing with KO and MSFT through wednesday after market close
+        csvMACD = './testData/2019_12_02_James2M/__AV01_{}_01.csv'.format(ticker)
+        #turn the csv into a data frame with pandas
+        dfMACD = pd.DataFrame(pd.read_csv(csvMACD, low_memory=False))
 
-        #***may need to delete the csv rows with timestamps that don't line up with MACD times***
-        csvPRICE = './testData/2019_12_02_James1/__AV01_{}_01.csv'.format(ticker) #only testing with KO and MSFT through wednesday after market close
-        dfPRICE = pd.DataFrame(pd.read_csv(csvPRICE, low_memory=False)) #turn the csv into a data frame with pandas	
+        csvPRICE = './testData/2019_12_02_James1/__AV01_{}_01.csv'.format(ticker)
+        dfPRICE = pd.DataFrame(pd.read_csv(csvPRICE, low_memory=False))
         fullImportedData = compareVals(df, dfMACD, dfPRICE, ticker)
-        #print(fullImportedData[0])
-        #print(fullImportedData[1])
         df = combineDFs(df, fullImportedData, ticker)
-        #print(df)
+
     return df
 
 
 def makeTS():
     finalrng=[] #initialize the list that will contain the correct dates and times
     holiday=['2019-11-28']
-    days = pd.bdate_range(start='11/25/2019 10:04', end='12/2/2019 16:00', holidays=holiday, freq='C', normalize=False, weekmask='Mon Tue Wed Thu Fri'); #create range with days, wrong times
-    rng = pd.bdate_range(start='11/25/2019 10:04', end='12/2/2019 16:00', freq='1T', normalize=False); #create our own range using 1 min intervals, but all days of the week
+    #create range with days, wrong times
+    days = pd.bdate_range(start='11/25/2019 10:04', end='12/2/2019 16:00', holidays=holiday, freq='C', normalize=False, weekmask='Mon Tue Wed Thu Fri');
+    #create our own range using 1 min intervals, but all days of the week
+    rng = pd.bdate_range(start='11/25/2019 10:04', end='12/2/2019 16:00', freq='1T', normalize=False);
 
     #fill list with correct times and days for ts index
     startTime = dt.time(9,31,0);
@@ -47,8 +46,8 @@ def makeTS():
             if day in shortdate:
                     if longtime[count] >= startTime:
                             if longtime[count] <= endTime:
-                                    #print(rng[count].strftime("%Y-%m-%d %H:%M"))
-                                    finalrng.append(rng[count].strftime("%Y-%m-%d %H:%M")) #dont want the seconds since they are't in the imported data to compare with
+                            		#dont want the seconds since they are't in the imported data to compare with
+                                    finalrng.append(rng[count].strftime("%Y-%m-%d %H:%M"))
             count = count+1
 
     return finalrng[::-1] #prevents inverted range return
@@ -58,12 +57,8 @@ def makeTS():
 def compareVals(dfWeBuilt, dfMACD, dfPRICE, symbol):
 	#DROP UNNECESSARY COLUMNS:
     dfMACD = dfMACD.drop(['MACD','MACD_Signal'], axis=1) #drop the columns we dont need
-    #print(symbol, "MACD start:")######################################################################
-    #print(dfMACD)######################################################################
 
     dfPRICE = dfPRICE.drop(['high','low','close','volume'], axis=1) #drop the columns we dont need
-    #print(symbol, "Price start:")######################################################################
-    #print(dfPRICE)######################################################################
 
     #INSERT ROWS TO MATCH TIMESERIES INDEX
     count=0
@@ -71,70 +66,52 @@ def compareVals(dfWeBuilt, dfMACD, dfPRICE, symbol):
     	#assumes that the datetime start time and end time match rng's start time and end time
     	try:
 	        if  str(datetime) != str(dfMACD["time"][count]):
-	            #print("Missing time:", dfMACD["time"][count])
 	            dfMACD=insertRow(dfMACD, count, str(datetime)) #add the missing times into the dataframe
-	            #print(dfMACD) ########
 	        count=count+1
 
 	    #key error for case where the dataframe's start time is one minute short of rng's start time
     	except KeyError as e:
-	        #print(e)
 	        if  str(datetime) != str(dfMACD["time"].iloc[-1]): #comparing to last time in length-1 (last position)
 	            dfMACD=endcase(dfMACD, str(datetime)) #add the missing times into the dataframe
 	        count=count+1
 
-    #print("MACD done:")
-    #print(dfMACD)
-
     counter=0
     for datetime in dfWeBuilt["dateAndTime"]:
         if  str(datetime) != pd.to_datetime(str(dfPRICE["timestamp"][counter])).strftime("%Y-%m-%d %H:%M"):
-            #print(str(datetime), pd.to_datetime(str(dfPRICE["timestamp"][counter])).strftime("%Y-%m-%d %H:%M")) ########
-            #print("Missing time:", dfPRICE["timestamp"][counter])
             dfPRICE=insertRow(dfPRICE, counter, str(datetime)) #add the missing times into the dataframe
         counter=counter+1
-    #print("Price done:")
-    #print(dfPRICE)
 
     #IF LENGTH OF PRICE AND MACD DONT MATCH, TRIM THE LONGER ONE
     if(dfMACD.shape[0] != dfPRICE.shape[0]):
     	if dfPRICE.shape[0] > dfMACD.shape[0]:
     		for index in [*range(dfPRICE.shape[0])]:
     			if index not in [*range(dfMACD.shape[0])]:
-    				#print(index)
-    				dfPRICE.drop(index, inplace=True) #inplace means that the drop applies to this dataframe, doesn't need to be reassigned to a new df
+    				dfPRICE.drop(index, inplace=True)
+    				#inplace means that the drop applies to this dataframe, doesn't need to be reassigned to a new df
     	else:
     		for index in [*range(dfMACD.shape[0])]:
     			if index not in [*range(dfPRICE.shape[0])]:
     				dfMACD.drop(index)
 
-    #print(symbol, "MACD done:")######################################################################
-    #print(dfMACD)######################################################################
-    #print(symbol, "Price done:")######################################################################
-    #print(dfPRICE)######################################################################
     return dfMACD, dfPRICE
 
 	
 def insertRow(df, rowNum, time):
-    # Citation: Used the following as a guide to insert rows into dataframe -- https://www.geeksforgeeks.org/insert-row-at-given-position-in-pandas-dataframe/
+    # Citation: Used the following as a guide to insert rows into dataframe --
+    #https://www.geeksforgeeks.org/insert-row-at-given-position-in-pandas-dataframe/
     dfTop=df[0:rowNum] #first half
-    #print(dfTop)
     dfBottom=df[rowNum:] #second half
-    #print(dfBottom)
     
     dfTop.loc[rowNum]=[time, np.nan] #add value to the second half
     newDF=pd.concat([dfTop, dfBottom]) #mend the dataframes back together
     newDF.index = [*range(newDF.shape[0])] #need to reaassign the index
-    #print(newDF.loc[rowNum])
     return newDF
 
 
 def endcase(df, time):
     dfTop=df[0:-2] #first half
-    #print(dfTop)
 
     dfBottom=df.iloc[-1] #second half
-    #print(dfBottom)
     
     dfTop.loc[-2]=[time, np.nan] #add value to the second half
     newDF=pd.concat([dfTop, dfBottom]) #mend the dataframes back together
@@ -267,7 +244,8 @@ def combineDFs(dfWeBuilt, dfImported, stock):
 
 
 def clean(rawDF):
-    #drop row with more than 30% of columns in that row having NaN for that row (many columns have a signal value in the row, so thresh must be low)
+    #drop row with more than 30% of columns in that row having NaN for that row
+    #(many columns have a signal value in the row, so thresh must be low)
     reducedDF = rawDF.dropna(thresh=rawDF.shape[1]*0.7)
     reducedDF.index = [*range(reducedDF.shape[0])] #need to reaassign the index again
     
@@ -441,16 +419,7 @@ def populateDB(df, allSymbols):
     CVX_TRADE = df["CVX_TRADE"]
     CVX_PROFIT = df["CVX_PROFIT"]
     CVX_RETURN = df["CVX_RETURN"]
-
-    for stock in allSymbols:
-        priceCol="{}_PRICE".format(stock)
-        macdCol="{}_MACD".format(stock)
-        derivCol="{}_GRADIENT".format(stock)
-        tradeCol="{}_TRADE".format(stock)
-        profitCol="{}_PROFIT".format(stock)
-        percentCol="{}_PCT_RTRN".format(stock)
-
-    conn = sqlite3.connect('database')
+    
     insert_into_TradingSignals(conn, dateAndTime, MSFT_MACD, MSFT_GRADIENT, MSFT_PRICE, MSFT_TRADE, MSFT_PROFIT, MSFT_RETURN,
     KO_MACD, KO_GRADIENT, KO_PRICE, KO_TRADE, KO_PROFIT, KO_RETURN,
     XOM_MACD, XOM_GRADIENT, XOM_PRICE, XOM_TRADE, XOM_PROFIT, XOM_RETURN,
@@ -493,53 +462,59 @@ def insert_into_TradingSignals(connection, dateAndTime, MSFT_MACD, MSFT_GRADIENT
     JPM_MACD, JPM_GRADIENT, JPM_PRICE, JPM_TRADE, JPM_PROFIT, JPM_RETURN,
     MRK_MACD, MRK_GRADIENT, MRK_PRICE, MRK_TRADE, MRK_PROFIT, MRK_RETURN,
     CVX_MACD, CVX_GRADIENT, CVX_PRICE, CVX_TRADE, CVX_PROFIT, CVX_RETURN):
-    c = connection.cursor()
-    c.execute("insert into TransactionHistory values ({}, {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {},\
-     {}, {}, {}, '{}', {}, {}, \
-     {}, {}, {}, '{}', {}, {})".format( \
-    dateAndTime, MSFT_MACD, MSFT_GRADIENT, MSFT_PRICE, MSFT_TRADE, MSFT_PROFIT, MSFT_RETURN, \
-    KO_MACD, KO_GRADIENT, KO_PRICE, KO_TRADE, KO_PROFIT, KO_RETURN, \
-    XOM_MACD, XOM_GRADIENT, XOM_PRICE, XOM_TRADE, XOM_PROFIT, XOM_RETURN, \
-    INTC_MACD, INTC_GRADIENT, INTC_PRICE, INTC_TRADE, INTC_PROFIT, INTC_RETURN, \
-    JNJ_MACD, JNJ_GRADIENT, JNJ_PRICE, JNJ_TRADE, JNJ_PROFIT, JNJ_RETURN, \
-    PG_MACD, PG_GRADIENT, PG_PRICE, PG_TRADE, PG_PROFIT, \
-    PFE_MACD, PFE_GRADIENT, PFE_PRICE, PFE_TRADE, PFE_PROFIT, PFE_RETURN, \
-    DIS_MACD, DIS_GRADIENT, DIS_PRICE, DIS_TRADE, DIS_PROFIT, DIS_RETURN, \
-    AXP_MACD, AXP_GRADIENT, AXP_PRICE, AXP_TRADE, AXP_PROFIT, AXP_RETURN, \
-    GS_MACD, GS_GRADIENT, GS_PRICE, GS_TRADE, GS_PROFIT, GS_RETURN, \
-    V_MACD, V_GRADIENT, V_PRICE, V_TRADE, V_PROFIT, V_RETURN, \
-    VZ_MACD, VZ_GRADIENT, VZ_PRICE, VZ_TRADE, VZ_PROFIT, VZ_RETURN, \
-    WMT_MACD, WMT_GRADIENT, WMT_PRICE, WMT_TRADE, WMT_PROFIT, WMT_RETURN, \
-    MCD_MACD, MCD_GRADIENT, MCD_PRICE, MCD_TRADE, MCD_PROFIT, MCD_RETURN, \
-    BA_MACD, BA_GRADIENT, BA_PRICE, BA_TRADE, BA_PROFIT, BA_RETURN, \
-    CSCO_MACD, CSCO_GRADIENT, CSCO_PRICE, CSCO_TRADE, CSCO_PROFIT, CSCO_RETURN, \
-    NKE_MACD, NKE_GRADIENT, NKE_PRICE, NKE_TRADE, NKE_PROFIT, NKE_RETURN, \
-    JPM_MACD, JPM_GRADIENT, JPM_PRICE, JPM_TRADE, JPM_PROFIT, JPM_RETURN, \
-    MRK_MACD, MRK_GRADIENT, MRK_PRICE, MRK_TRADE, MRK_PROFIT, MRK_RETURN, \
-    CVX_MACD, CVX_GRADIENT, CVX_PRICE, CVX_TRADE, CVX_PROFIT, CVX_RETURN
-    ))
-    connection.commit()
+
+    index = 0
+    while index < df.shape[1]:
+        conn = psycopg2.connect(host="constructionmgmt2.cf9pxr0irdor.us-east-1.rds.amazonaws.com",database="Experimental DB", user="jlawrence2021", password="jazDev30!")
+        c = conn.cursor()
+        query = "INSERT INTO alltextsignals (ateandtime, MSFT_MACD, MSFT_GRADIENT, MSFT_PRICE, MSFT_TRADE, MSFT_PROFIT, MSFT_RETURN, KO_MACD, KO_GRADIENT, KO_PRICE, KO_TRADE, KO_PROFIT, KO_RETURN,XOM_MACD, XOM_GRADIENT, XOM_PRICE, XOM_TRADE, XOM_PROFIT, XOM_RETURN, INTC_MACD, INTC_GRADIENT, INTC_PRICE, INTC_TRADE, INTC_PROFIT, INTC_RETURN, JNJ_MACD, JNJ_GRADIENT, JNJ_PRICE, JNJ_TRADE, JNJ_PROFIT, JNJ_RETURN, PG_MACD, PG_GRADIENT, PG_PRICE, PG_TRADE, PG_PROFIT,PFE_MACD, PFE_GRADIENT, PFE_PRICE, PFE_TRADE, PFE_PROFIT, PFE_RETURN,DIS_MACD, DIS_GRADIENT, DIS_PRICE, DIS_TRADE, DIS_PROFIT, DIS_RETURN,AXP_MACD, AXP_GRADIENT, AXP_PRICE, AXP_TRADE, AXP_PROFIT, AXP_RETURN,GS_MACD, GS_GRADIENT, GS_PRICE, GS_TRADE, GS_PROFIT, GS_RETURN,V_MACD, V_GRADIENT, V_PRICE, V_TRADE, V_PROFIT, V_RETURN,VZ_MACD, VZ_GRADIENT, VZ_PRICE, VZ_TRADE, VZ_PROFIT, VZ_RETURN,WMT_MACD, WMT_GRADIENT, WMT_PRICE, WMT_TRADE, WMT_PROFIT, WMT_RETURN,MCD_MACD, MCD_GRADIENT, MCD_PRICE, MCD_TRADE, MCD_PROFIT, MCD_RETURN,BA_MACD, BA_GRADIENT, BA_PRICE, BA_TRADE, BA_PROFIT, BA_RETURN,CSCO_MACD, CSCO_GRADIENT, CSCO_PRICE, CSCO_TRADE, CSCO_PROFIT, CSCO_RETURN,NKE_MACD, NKE_GRADIENT, NKE_PRICE, NKE_TRADE, NKE_PROFIT, NKE_RETURN,JPM_MACD, JPM_GRADIENT, JPM_PRICE, JPM_TRADE, JPM_PROFIT, JPM_RETURN,MRK_MACD, MRK_GRADIENT, MRK_PRICE, MRK_TRADE, MRK_PROFIT, MRK_RETURN,CVX_MACD, CVX_GRADIENT, CVX_PRICE, CVX_TRADE, CVX_PROFIT, CVX_RETURN) VALUES (%s , %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s, \
+        %s, %s, %s, %s, %s, %s);"
+        data = (dateAndTime.values[index], MSFT_MACD.values[index], MSFT_GRADIENT.values[index], MSFT_PRICE.values[index], MSFT_TRADE.values[index], MSFT_PROFIT.values[index], MSFT_RETURN.values[index], \
+        KO_MACD.values[index], KO_GRADIENT.values[index], KO_PRICE.values[index], KO_TRADE.values[index], KO_PROFIT.values[index], KO_RETURN.values[index], \
+        XOM_MACD.values[index], XOM_GRADIENT.values[index], XOM_PRICE.values[index], XOM_TRADE.values[index], XOM_PROFIT.values[index], XOM_RETURN.valeus[index], \
+        INTC_MACD.values[index], INTC_GRADIENT.values[index], INTC_PRICE.values[index], INTC_TRADE.values[index], INTC_PROFIT.values[index], INTC_RETURN.values[index], \
+        JNJ_MACD.values[index], JNJ_GRADIENT.values[index], JNJ_PRICE.values[index], JNJ_TRADE.values[index], JNJ_PROFIT.values[index], JNJ_RETURN.values[index], \
+        PG_MACD.values[index], PG_GRADIENT.values[index], PG_PRICE.values[index], PG_TRADE.values[index], PG_PROFIT.values[index], \
+        PFE_MACD.values[index], PFE_GRADIENT.values[index], PFE_PRICE.values[index], PFE_TRADE.values[index], PFE_PROFIT.values[index], PFE_RETURN.values[index], \
+        DIS_MACD.values[index], DIS_GRADIENT.values[index], DIS_PRICE.values[index], DIS_TRADE.values[index], DIS_PROFIT.values[index], DIS_RETURN.values[index], \
+        AXP_MACD.values[index], AXP_GRADIENT.values[index], AXP_PRICE.values[index], AXP_TRADE.values[index], AXP_PROFIT.values[index], AXP_RETURN.values[index], \
+        GS_MACD.values[index], GS_GRADIENT.values[index], GS_PRICE.values[index], GS_TRADE.values[index], GS_PROFIT.values[index], GS_RETURN.values[index], \
+        V_MACD.values[index], V_GRADIENT.values[index], V_PRICE.values[index], V_TRADE.values[index], V_PROFIT.values[index], V_RETURN.values[index], \
+        VZ_MACD.values[index], VZ_GRADIENT.values[index], VZ_PRICE.values[index], VZ_TRADE.values[index], VZ_PROFIT.values[index], VZ_RETURN.values[index], \
+        WMT_MACD.values[index], WMT_GRADIENT.values[index], WMT_PRICE.values[index], WMT_TRADE.values[index], WMT_PROFIT.values[index], WMT_RETURN.values[index], \
+        MCD_MACD.values[index], MCD_GRADIENT.values[index], MCD_PRICE.values[index], MCD_TRADE.values[index], MCD_PROFIT.values[index], MCD_RETURN.values[index], \
+        BA_MACD.values[index], BA_GRADIENT.values[index], BA_PRICE.values[index], BA_TRADE.values[index], BA_PROFIT.values[index], BA_RETURN.values[index], \
+        CSCO_MACD.values[index], CSCO_GRADIENT.values[index], CSCO_PRICE.values[index], CSCO_TRADE.values[index], CSCO_PROFIT.values[index], CSCO_RETURN.values[index], \
+        NKE_MACD.values[index], NKE_GRADIENT.values[index], NKE_PRICE.values[index], NKE_TRADE.values[index], NKE_PROFIT.values[index], NKE_RETURN.values[index], \
+        JPM_MACD.values[index], JPM_GRADIENT.values[index], JPM_PRICE.values[index], JPM_TRADE.values[index], JPM_PROFIT.values[index], JPM_RETURN.values[index], \
+        MRK_MACD.values[index], MRK_GRADIENT.values[index], MRK_PRICE.values[index], MRK_TRADE.values[index], MRK_PROFIT.values[index], MRK_RETURN.values[index], \
+        CVX_MACD.values[index], CVX_GRADIENT.values[index], CVX_PRICE.values[index], CVX_TRADE.values[index], CVX_PROFIT.values[index], CVX_RETURN.values[index]
+        )
+        c.execute(query, data)
+        conn.commit()
+        index=index+1
 
 
 def main():
     allTickers=["MSFT", "KO", "XOM", "INTC", "JNJ", "PG", "PFE", "DIS", "AXP", "GS", "V", "VZ", "WMT", "MCD", "BA", "CSCO", "NKE", "JPM", "MRK", "CVX"]
     rng = makeTS();
-    dataframe = makeDF(allTickers, rng);  #structure api call by passing in a ticker symbol
+    dataframe = makeDF(allTickers, rng); #structure api call by passing in a ticker symbol
     dataframe.to_csv('./hasNullsExport.csv')
     cleanedDF = clean(dataframe)
     cleanedDF.to_csv('./cleanedExport.csv')
