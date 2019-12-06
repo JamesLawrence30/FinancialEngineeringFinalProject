@@ -4,7 +4,6 @@ from datetime import datetime
 import datetime as dt
 import numpy as np
 from numpy import nan
-import requests, json, sqlite3, copy
 
 
 #can only make 5 API calls per minute, and need to make 20, so had to download all the CSV files first
@@ -110,9 +109,8 @@ def insertRow(df, rowNum, time):
 
 def endcase(df, time):
     dfTop=df[0:-2] #first half
-
     dfBottom=df.iloc[-1] #second half
-    
+
     dfTop.loc[-2]=[time, np.nan] #add value to the second half
     newDF=pd.concat([dfTop, dfBottom]) #mend the dataframes back together
     newDF.index = [*range(newDF.shape[0])] #need to reaassign the index
@@ -278,16 +276,6 @@ def analyze(df, allSymbols):
     print("Covariance of returns:", covReturns)
 
 
-def populateDB(df, allSymbols):
-    for stock in allSymbols:
-        priceCol="{}_PRICE".format(stock)
-        macdCol="{}_MACD".format(stock)
-        derivCol="{}_GRADIENT".format(stock)
-        tradeCol="{}_TRADE".format(stock)
-        profitCol="{}_PROFIT".format(stock)
-        percentCol="{}_PCT_RTRN".format(stock)
-
-
 def main():
     allTickers=["MSFT", "KO", "XOM", "INTC", "JNJ", "PG", "PFE", "DIS", "AXP", "GS", "V", "VZ", "WMT", "MCD", "BA", "CSCO", "NKE", "JPM", "MRK", "CVX"]
     rng = makeTS();
@@ -296,7 +284,6 @@ def main():
     cleanedDF = clean(dataframe)
     cleanedDF.to_csv('./cleanedExport.csv')
     results = analyze(cleanedDF, allTickers)
-    #populateDB(cleanedDF, allTickers);#populate database with all time series data
 
 
 #Tell python to call main function first
