@@ -141,5 +141,5 @@
 --     CVX_RETURN DECIMAL
 -- );
 
-select * from TradingSignals;
+select * from TradingSignals
 
