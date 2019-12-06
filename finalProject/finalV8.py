@@ -254,7 +254,7 @@ def combineDFs(dfWeBuilt, dfImported, stock):
     profitCol="{}_PROFIT".format(stock)
     dfWeBuilt[profitCol]=profitsTaken
 
-    percentCol="{}_%_RETURN".format(stock)
+    percentCol="{}_PCT_RTRN".format(stock)
     dfWeBuilt[percentCol]=percentReturns
     
     #put df back in newest to oldest order
@@ -280,6 +280,26 @@ def clean(rawDF):
     return cleanedDF
 
 
+def analyze(df, allSymbols):
+    #create a list of the total percent returns of each stock over the time period
+    all_returns=[]
+    for symbol in allSymbols:
+        #print(symbol)
+        sumReturns=0
+        percentCol="{}_PCT_RTRN".format(symbol)
+        for percent_return in df[percentCol]:
+            if percent_return != 0:
+                sumReturns=sumReturns+percent_return
+        all_returns.append(sumReturns)
+    print("All percent returns:", all_returns)
+    avgReturns = np.mean(all_returns).round(2)
+    print("Average percent return:", avgReturns)
+    varReturns = np.var(all_returns).round(2)
+    print("Variance of returns:", varReturns)
+    covReturns = np.cov(all_returns).round(2)
+    print("Covariance of returns:", covReturns)
+
+
 def populateDB(df):
 	#df["colname"] = toSendToDB
     for index, row in df.iterrows():
@@ -297,6 +317,7 @@ def main():
     dataframe.to_csv('./hasNullsExport.csv')
     cleanedDF = clean(dataframe)
     cleanedDF.to_csv('./cleanedExport.csv')
+    results = analyze(cleanedDF, allTickers)
     #populateDB(cleanedDF);#populate database with all time series data
 
 
