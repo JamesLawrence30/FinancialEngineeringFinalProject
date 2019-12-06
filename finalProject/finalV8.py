@@ -300,14 +300,14 @@ def analyze(df, allSymbols):
     print("Covariance of returns:", covReturns)
 
 
-def populateDB(df):
-	#df["colname"] = toSendToDB
-    for index, row in df.iterrows():
-        #need index, row to access row values by name
-        if(float(row["MACD_Signal"]) >= 0.0):
-            print("SELL:", row["time"], row["MACD_Signal"]);
-        if(float(row["MACD_Signal"]) < 0.0):
-            print("BUY:", row["time"], row["MACD_Signal"]);
+def populateDB(df, allSymbols):
+    for stock in allSymbols:
+        priceCol="{}_PRICE".format(stock)
+        macdCol="{}_MACD".format(stock)
+        derivCol="{}_GRADIENT".format(stock)
+        tradeCol="{}_TRADE".format(stock)
+        profitCol="{}_PROFIT".format(stock)
+        percentCol="{}_PCT_RTRN".format(stock)
 
 
 def main():
@@ -318,7 +318,7 @@ def main():
     cleanedDF = clean(dataframe)
     cleanedDF.to_csv('./cleanedExport.csv')
     results = analyze(cleanedDF, allTickers)
-    #populateDB(cleanedDF);#populate database with all time series data
+    #populateDB(cleanedDF, allTickers);#populate database with all time series data
 
 
 #Tell python to call main function first
