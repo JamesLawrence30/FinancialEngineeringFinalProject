@@ -1,0 +1,10 @@
+{
+    "sqltools.connections": [
+        {
+            "database": "C:\\Users\\StudentUser\\PycharmProjects\\untitled\\database",
+            "dialect": "SQLite",
+            "name": "Signals"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

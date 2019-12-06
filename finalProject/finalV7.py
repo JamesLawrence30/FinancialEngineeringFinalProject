@@ -172,7 +172,148 @@ def clean(rawDF):
 
 
 def populateDB(df):
-	#df["colname"] = toSendToDB
+	dateAndTime = df["dateAndTime"]
+    #
+    MSFT_MACD = df["MSFT_MACD"]
+    MSFT_GRADIENT = df["MSFT_GRADIENT"]
+    MFST_PRICE = df["MFST_PRICE"]
+    MFST_TRADE = df["MFST_TRADE"]
+    MFST_PROFIT = df["MFST_PROFIT"]
+    MFST_%_RETURN = df["MFST_%_RETURN"]
+    #
+    KO_MACD = df["KO_MACD"] 
+    KO_GRADIENT = df["KO_GRADIENT"]
+    KO_PRICE = df["KO_PRICE"]
+    KO_TRADE = df["KO_TRADE"]
+    KO_PROFIT = df["KO_PROFIT"]
+    KO_%_RETURN = df["KO_%_RETURN"]
+    #
+    XOM_MACD = df["XOM_MACD"]
+    XOM_GRADIENT = df["XOM_GRADIENT"]
+    XOM_PRICE = df["XOM_PRICE"]
+    XOM_TRADE = df["XOM_TRADE"]
+    XOM_PROFIT = df["XOM_PROFIT"]
+    XOM_%_RETURN = df["XOM_%_RETURN"]
+    #
+    INTC_MACD = df["INTC_MACD"]
+    INTC_GRADIENT = df["INTC_GRADIENT"]
+    INTC_PRICE = df["INTC_PRICE"]
+    INTC_TRADE = df["INTC_TRADE"]
+    INTC_PROFIT = df["INTC_PROFIT"]
+    INTC_%_RETURN = df["INTC_%_RETURN"]
+    #
+    JNJ_MACD = df["JNJ_MACD"]
+    JNJ_GRADIENT = df["JNJ_GRADIENT"]
+    JNJ_PRICE = df["JNJ_PRICE"]
+    JNJ_TRADE = df["JNJ_TRADE"]
+    JNJ_PROFIT = df["JNJ_PROFIT"]
+    JNJ_%_RETURN = df["JNJ_%_RETURN"]
+    #
+    PG_MACD = df["PG_MACD"]
+    PG_GRADIENT = df["PG_GRADIENT"]
+    PG_PRICE = df["PG_PRICE"]
+    PG_TRADE = df["PG_TRADE"]
+    PG_PROFIT = df["PG_PROFIT"]
+    PG_%_RETURN = df["PG_%_RETURN"]
+    #
+    PFE_MACD = df["PFE_MACD"]
+    PFE_GRADIENT = df["PFE_GRADIENT"]
+    PFE_PRICE = df["PFE_PRICE"]
+    PFE_TRADE = df["PFE_TRADE"]
+    PFE_PROFIT = df["PFE_PROFIT"]
+    PFE_%_RETURN = df["PFE_RETURN"]
+    #
+    DIS_MACD = df["DIS_MACD"]
+    DIS_GRADIENT = df["DIS_GRADIENT"]
+    DIS_PRICE = df["DIS_PRICE"]
+    DIS_TRADE = df["DIS_TRADE"]
+    DIS_PROFIT = df["DIS_PROFIT"]
+    DIS_%_RETURN = df["DIS_%_RETURN"]
+    #
+    AXP_MACD = df["AXP_MACD"]
+    AXP_GRADIENT = df["AXP_GRADIENT"]
+    AXP_PRICE = df["AXP_PRICE"]
+    AXP_TRADE = df["AXP_TRADE"]
+    AXP_PROFIT = df["AXP_PROFIT"]
+    AXP_%_RETURN = df["AXP_%_RETURN"]
+    #
+    GS_MACD = df["GS_MACD"]
+    GS_GRADIENT = df["GS_GRADIENT"]
+    GS_PRICE = df["GS_PRICE"]
+    GS_TRADE = df["GS_TRADE"]
+    GS_PROFIT = df["GS_PROFIT"]
+    GS_%_RETURN = df["GS_%_RETURN"]
+    #
+    V_MACD = df["V_MACD"]
+    V_GRADIENT = df["V_GRADIENT"]
+    V_PRICE = df["V_PRICE"]
+    V_TRADE = df["V_TRADE"]
+    V_PROFIT = df["V_PROFIT"]
+    V_%_RETURN = df["V_%_RETURN"]
+    #
+    VZ_MACD = df["VZ_MACD"]
+    VZ_GRADIENT = df["VZ_GRADIENT"]
+    VZ_PRICE = df["VZ_PRICE"]
+    VZ_TRADE = df["VZ_TRADE"]
+    VZ_PROFIT = df["VZ_PROFIT"]
+    VZ_%_RETURN = df["VZ_%_RETURN"]
+    #
+    WMT_MACD = df["WMT_MACD"]
+    WMT_GRADIENT = df["WMT_GRADIENT"]
+    WMT_PRICE = df["WMT_PRICE"]
+    WMT_TRADE = df["WMT_TRADE"]
+    WMT_PROFIT = df["WMT_PROFIT"]
+    WMT_%_RETURN = df["WMT_%_RETURN"]
+    #
+    MCD_MACD = df["MCD_MACD"]
+    MCD_GRADIENT = df["MCD_GRADIENT"]
+    MCD_PRICE = df["MCD_PRICE"]
+    MCD_TRADE = df["MCD_TRADE"]
+    MCD_PROFIT = df["MCD_PROFIT"]
+    MCD_%_RETURN = df["MCD_%_RETURN"]
+    #
+    BA_MACD = df["BA_MACD"]
+    BA_GRADIENT = df["BA_GRADIENT"]
+    BA_PRICE = df["BA_PRICE"]
+    BA_TRADE = df["BA_TRADE"]
+    BA_PROFIT = df["BA_PROFIT"]
+    BA_%_RETURN = df["BA_%_RETURN"]
+    #
+    CSCO_MACD = df["CSCO_MACD"]
+    CSCO_GRADIENT = df["CSCO_GRADIENT"]
+    CSCO_PRICE = df["CSCO_PRICE"]
+    CSCO_TRADE = df["CSCO_TRADE"]
+    CSCO_PROFIT = df["CSCO_PROFIT"]
+    CSCO_%_RETURN = df["CSCO_%_RETURN"]
+    #
+    NKE_MACD = df["NKE_MACD"]
+    NKE_GRADIENT = df["NKE_GRADIENT"]
+    NKE_PRICE = df["NKE_PRICE"]
+    NKE_TRADE = df["NKE_TRADE"]
+    NKE_PROFIT = df["NKE_PROFIT"]
+    NKE_%_RETURN = df["NKE_%_RETURN"]
+    #
+    JPM_MACD = df["JPM_MACD"]
+    JPM_GRADIENT = df["JPM_GRADIENT"]
+    JPM_PRICE = df["JPM_PRICE"]
+    JPM_TRADE = df["MFST_TRADE"]
+    JPM_PROFIT = df["JPM_PROFIT"]
+    JPM_%_RETURN = df["JPM_%_RETURN"]
+    #
+    MRK_MACD = df["MRK_MACD"]
+    MRK_GRADIENT = df["MRK_GRADIENT"]
+    MRK_PRICE = df["MRK_PRICE"]
+    MRK_TRADE = df["MRK_TRADE"]
+    MRK_PROFIT = df["MRK_PROFIT"]
+    MRK_%_RETURN = df["MRK_%_RETURN"]
+    #
+    CVX_MACD = df["CVX_MACD"]
+    CVX_GRADIENT = df["CVX_GRADIENT"]
+    CVX_PRICE = df["CVX_PRICE"]
+    CVX_TRADE = df["CVX_TRADE"]
+    CVX_PROFIT = df["CVX_PROFIT"]
+    CVX_%_RETURN = df["CVX_%_RETURN"]
+    
     for index, row in df.iterrows():
         #need index, row to access row values by name
         if(float(row["MACD_Signal"]) >= 0.0):
@@ -192,7 +333,7 @@ def main():
     dataframe.to_csv('./hasNullsExport.csv')
     cleanedDF = clean(dataframe)
     cleanedDF.to_csv('./cleanedExport.csv')
-    #populateDB(cleanedDF);#populate database with all time series data
+    populateDB(cleanedDF);#populate database with all time series data
 
 
 #Tell python to call main function first
